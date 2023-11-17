@@ -176,8 +176,7 @@ function createAnimation(data) {
         cube.position.z = vz;
 
         // orientation
-        const quaternion = new THREE.Quaternion();
-        quaternion.setFromAxisAngle(new THREE.Vector3(vox, voy, voz), vow);
+        const quaternion = new THREE.Quaternion(vox, voy, voz, Math.cos(vow/2));
         cube.setRotationFromQuaternion(quaternion);
 
         voxels.push(cube);
@@ -196,13 +195,6 @@ function createAnimation(data) {
 
 function kfAnimate(times, positions_per_voxel, rotations_per_voxel) {
 
-  // const positionKF = new THREE.VectorKeyframeTrack(".position", times, positions);
-  // const rotationKF = new THREE.VectorKeyframeTrack(".quaternion", times, positions);
-
-  // const tracks = [positionKF, rotationKF];
-
-  // const length = -1;
-
   // create animation for each voxel
   for (let i = 0; i < voxels.length; i++) {
 
@@ -218,9 +210,29 @@ function kfAnimate(times, positions_per_voxel, rotations_per_voxel) {
       positions.push(vz);
     }
 
-    const positionKF = new THREE.VectorKeyframeTrack(".position", times, positions);
+    // get rotation key frames for the voxel
+    let rotations = [];
+    for (let p = 0; p < rotations_per_voxel.length; p++) {
 
-    const tracks = [positionKF];
+      let vow = rotations_per_voxel[p][i*4];
+      let vox = rotations_per_voxel[p][i*4+1];
+      let voy = rotations_per_voxel[p][i*4+2];
+      let voz = rotations_per_voxel[p][i*4+3];
+      
+
+      const q = new THREE.Quaternion(vox, voy, voz, Math.cos(vow / 2));
+
+      rotations.push(q.x);
+      rotations.push(q.y);
+      rotations.push(q.z);
+      rotations.push(q.w);
+    }
+
+    const positionKF = new THREE.VectorKeyframeTrack(".position", times, positions);
+    const rotationKF = new THREE.QuaternionKeyframeTrack(".quaternion", times, rotations);
+
+    // const tracks = [positionKF, rotationKF];
+    const tracks = [positionKF]
     
     const length = -1;
 
